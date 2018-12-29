@@ -23,13 +23,13 @@
 # 
 # Please make sure if you are running this notebook in the workspace that you have chosen GPU rather than CPU mode.
 
-# In[2]:
+# In[1]:
 
 
 # Imports here
 get_ipython().run_line_magic('matplotlib', 'inline')
 get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
-
+import json
 import matplotlib.pyplot as plt
 import time
 import torch
@@ -54,7 +54,7 @@ from collections import OrderedDict
 # The pre-trained networks you'll use were trained on the ImageNet dataset where each color channel was normalized separately. For all three sets you'll need to normalize the means and standard deviations of the images to what the network expects. For the means, it's `[0.485, 0.456, 0.406]` and for the standard deviations `[0.229, 0.224, 0.225]`, calculated from the ImageNet images.  These values will shift each color channel to be centered at 0 and range from -1 to 1.
 #  
 
-# In[3]:
+# In[2]:
 
 
 data_dir = 'flowers'
@@ -115,7 +115,7 @@ testloader = torch.utils.data.DataLoader(test_dataset, batch_size=20,shuffle=Tru
 # In[5]:
 
 
-import json
+
 
 with open('cat_to_name.json', 'r') as f:
     cat_to_name = json.load(f)
@@ -324,7 +324,7 @@ model
 # 
 # And finally, PyTorch expects the color channel to be the first dimension but it's the third dimension in the PIL image and Numpy array. You can reorder dimensions using [`ndarray.transpose`](https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.ndarray.transpose.html). The color channel needs to be first and retain the order of the other two dimensions.
 
-# In[11]:
+# In[31]:
 
 
 # TODO: Process a PIL image for use in a PyTorch model
@@ -334,21 +334,29 @@ def process_image(imageFile):
     '''
     pil_image=Image.open(imageFile)
     
+    #Resizing image
+    pil_image=pil_image.resize((256,256))
+    
+    #Cropping image
+    
+    width,height=pil_image.size
+    left = (width - 224)/2
+    top = (height - 224)/2
+    right = (width + 224)/2
+    bottom = (height + 224)/2
+    pil_image=pil_image.crop((left, top, right, bottom))
     imageAdjustments=transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
     ])
     img_tensor=imageAdjustments(pil_image)
-    
+   
     return img_tensor
 
 img=(test_dir+'/1/'+'image_06752.jpg')
 
 
 img=process_image(img)
- 
 print(img.shape)    
 
 
